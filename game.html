@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NEON PATROL — ８９３のミニシューティングゲーム。" />
+    <title>NEON PATROL — Mini Game</title>
+    <link rel="stylesheet" href="game.css" />
+  </head>
+  <body>
+    <div class="game-shell">
+      <header class="game-header">
+        <a class="game-brand" href="index.html" aria-label="自己紹介ページへ戻る">
+          <span class="game-brand-mark">８</span>
+          <span class="game-brand-copy"><strong>NEON PATROL</strong><small>MINI SHOOTING GAME / ８９３</small></span>
+        </a>
+        <div class="hud" aria-label="ゲーム情報">
+          <div class="hud-item hud-score"><span>SCORE</span><strong id="score">000000</strong></div>
+          <div class="hud-item"><span>LEVEL</span><strong id="level">01</strong></div>
+          <div class="hud-item hud-lives-item"><span>LIVES</span><div id="lives" class="lives" aria-label="残りライフ 3"></div></div>
+        </div>
+      </header>
+
+      <main class="game-main">
+        <section class="game-stage" aria-label="NEON PATROL ゲーム画面">
+          <canvas id="gameCanvas" width="960" height="640">Canvasに対応したブラウザで遊べます。</canvas>
+          <button class="pause-button" id="pauseButton" type="button" aria-label="ゲームを一時停止" disabled>Ⅱ</button>
+          <div class="game-overlay is-visible" id="gameOverlay">
+            <div class="overlay-panel">
+              <p class="overlay-kicker" id="overlayKicker">SECTOR 893 / TRAINING</p>
+              <h1 id="overlayTitle">NEON <span>PATROL</span></h1>
+              <p id="overlayText">迫りくるドローンを撃ち落とせ。<br />いちばん長く、この空を守ろう。</p>
+              <button class="start-button" id="startButton" type="button">START MISSION <span>↗</span></button>
+              <div class="overlay-help"><span>MOVE</span> ARROW / WASD <i></i><span>FIRE</span> SPACE / TAP</div>
+              <p class="overlay-best" id="overlayBest">BEST 000000</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="game-controls" aria-label="操作方法">
+          <div class="controls-copy"><span class="controls-label">HOW TO PLAY</span><p>左右に移動して敵をかわし、ビームでドローンを撃破。<br />100ポイントごとにレベルアップします。</p></div>
+          <div class="touch-controls" aria-label="タッチ操作">
+            <button class="control-button" data-control="left" type="button" aria-label="左へ移動">←</button>
+            <button class="control-button control-fire" data-control="fire" type="button" aria-label="ビームを発射">FIRE</button>
+            <button class="control-button" data-control="right" type="button" aria-label="右へ移動">→</button>
+          </div>
+          <a class="back-link" href="index.html">← PROFILE</a>
+        </section>
+      </main>
+
+      <footer class="game-footer"><span>BUILT FOR A LITTLE BREAK</span><span>© <span id="currentYear">2025</span> ８９３</span><span>PRESS P TO PAUSE</span></footer>
+    </div>
+    <script src="game.js"></script>
+  </body>
+</html>
