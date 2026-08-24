@@ -254,14 +254,14 @@ function generateHealingItems() {
 }
 
 function getRenderCamera() {
-  if (view.mode === 'first') return { x: player.x, y: player.y, angle: player.angle };
-  const distances = [.9, .72, .54, .36, 0];
+  if (view.mode === 'first') return { x: player.x, y: player.y, angle: player.angle, horizon: HEIGHT / 2, pitch: 0 };
+  const distances = [1.2, 1, .8, .6, .4, 0];
   for (const distance of distances) {
     const x = player.x - Math.cos(player.angle) * distance;
     const y = player.y - Math.sin(player.angle) * distance;
-    if (!isWall(x, y)) return { x, y, angle: player.angle };
+    if (!isWall(x, y)) return { x, y, angle: player.angle, horizon: HEIGHT * .39, pitch: .2 };
   }
-  return { x: player.x, y: player.y, angle: player.angle };
+  return { x: player.x, y: player.y, angle: player.angle, horizon: HEIGHT * .39, pitch: .2 };
 }
 
 function castRay(angle, originX = player.x, originY = player.y) {
@@ -476,10 +476,10 @@ function wallColor(distance, side, mapX, mapY) {
   return `rgb(${Math.floor(palette[0] * shade)},${Math.floor(palette[1] * shade)},${Math.floor(palette[2] * shade)})`;
 }
 
-function drawFloorLines() {
+function drawFloorLines(horizon = HEIGHT / 2) {
   ctx.strokeStyle = 'rgba(255,49,95,.1)'; ctx.lineWidth = 1;
-  for (let y = HEIGHT / 2 + 28; y < HEIGHT; y += 34) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); ctx.stroke(); }
-  for (let x = -WIDTH; x < WIDTH * 2; x += 80) { ctx.beginPath(); ctx.moveTo(WIDTH / 2, HEIGHT / 2); ctx.lineTo(x, HEIGHT); ctx.stroke(); }
+  for (let y = horizon + 28; y < HEIGHT; y += 34) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(WIDTH, y); ctx.stroke(); }
+  for (let x = -WIDTH; x < WIDTH * 2; x += 80) { ctx.beginPath(); ctx.moveTo(WIDTH / 2, horizon); ctx.lineTo(x, HEIGHT); ctx.stroke(); }
 }
 
 function projectWorld(x, y, sizeFactor = .72) {
@@ -492,7 +492,8 @@ function projectWorld(x, y, sizeFactor = .72) {
   const spriteHeight = Math.min(560, HEIGHT / distance * sizeFactor);
   const ray = clamp(Math.floor(screenX / RAY_STEP), 0, RAY_COUNT - 1);
   if (distance > depthBuffer[ray] + .25) return null;
-  return { distance, screenX, spriteHeight, top: HEIGHT / 2 - spriteHeight * .48 };
+  const groundShift = renderCamera.pitch * spriteHeight * .16;
+  return { distance, screenX, spriteHeight, top: renderCamera.horizon - spriteHeight * .48 + groundShift };
 }
 
 function projectEnemy(enemy) { const projection = projectWorld(enemy.x, enemy.y, enemy === boss ? 1.18 : .72); return projection ? { ...projection, enemy } : null; }
@@ -638,8 +639,8 @@ function drawHorrorOverlay() {
 function drawWorld() {
   renderCamera = getRenderCamera();
   drawBackground();
-  for (let column = 0; column < RAY_COUNT; column += 1) { const angle = renderCamera.angle - FOV / 2 + (column / RAY_COUNT) * FOV; const ray = castRay(angle, renderCamera.x, renderCamera.y); depthBuffer[column] = ray.distance; const wallHeight = Math.min(HEIGHT * 2, HEIGHT / ray.distance); const top = HEIGHT / 2 - wallHeight / 2; ctx.fillStyle = wallColor(ray.distance, ray.side, ray.mapX, ray.mapY); ctx.fillRect(column * RAY_STEP, top, RAY_STEP + 1, wallHeight); }
-  drawFloorLines(); drawTreasures(); drawHealingItems(); drawEnemyBullets(); drawEnemies(); drawBoss(); drawPlayerAvatar(); drawParticles(); drawMinimap();
+  for (let column = 0; column < RAY_COUNT; column += 1) { const angle = renderCamera.angle - FOV / 2 + (column / RAY_COUNT) * FOV; const ray = castRay(angle, renderCamera.x, renderCamera.y); depthBuffer[column] = ray.distance; const wallHeight = Math.min(HEIGHT * 2, HEIGHT / ray.distance); const top = renderCamera.horizon - wallHeight / 2 + renderCamera.pitch * wallHeight * .12; ctx.fillStyle = wallColor(ray.distance, ray.side, ray.mapX, ray.mapY); ctx.fillRect(column * RAY_STEP, top, RAY_STEP + 1, wallHeight); }
+  drawFloorLines(renderCamera.horizon); drawTreasures(); drawHealingItems(); drawEnemyBullets(); drawEnemies(); drawBoss(); drawPlayerAvatar(); drawParticles(); drawMinimap();
   if (game.muzzle > 0 && view.mode === 'first') { ctx.globalAlpha = game.muzzle / .11; ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(WIDTH / 2, HEIGHT / 2 + 10, 28 + Math.random() * 15, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
   drawHorrorOverlay();
   if (player.hurt > 0) { ctx.fillStyle = `rgba(255,31,95,${player.hurt / 8})`; ctx.fillRect(0, 0, WIDTH, HEIGHT); }
