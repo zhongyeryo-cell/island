@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="PIXEL MATCH — 絵柄をそろえる記憶力ゲーム。" />
+    <title>PIXEL MATCH — 893 ARCADE</title>
+    <link rel="stylesheet" href="mini.css" />
+  </head>
+  <body>
+    <div class="mini-shell">
+      <header class="mini-header">
+        <a class="mini-brand" href="index.html" aria-label="ゲーム一覧へ戻る"><span class="mini-brand-mark">８</span><span class="mini-brand-copy"><strong>PIXEL MATCH</strong><small>893 ARCADE / PUZZLE</small></span></a>
+        <div class="mini-hud" aria-label="ゲーム情報"><div class="mini-stat"><span>MOVES</span><strong id="moves">00</strong></div><div class="mini-stat"><span>TIME</span><strong id="time">00</strong></div><div class="mini-stat"><span>BEST</span><strong id="best">--</strong></div></div>
+      </header>
+      <main class="mini-main">
+        <section class="mini-stage memory-stage" aria-label="PIXEL MATCH ゲーム画面">
+          <div class="memory-grid" id="memoryGrid" aria-label="記憶カード"></div>
+          <div class="mini-overlay is-visible" id="overlay"><div class="mini-overlay-panel"><p class="mini-kicker" id="overlayKicker">PUZZLE 03 / MEMORY GRID</p><h1 id="overlayTitle">PIXEL <em>MATCH</em></h1><p class="mini-overlay-copy" id="overlayCopy">カードをめくって、８組のペアを探そう。<br />少ない手数ほど、いいスコア。</p><button class="mini-start" id="startButton" type="button">START PUZZLE <span>↗</span></button><p class="mini-help">CLICK / TAP　·　MATCH 8 PAIRS</p><p class="mini-best" id="overlayBest">BEST -- MOVES</p></div></div>
+        </section>
+        <section class="mini-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>カードを２枚めくって同じ絵柄ならペア成立。全部そろうまでの手数を競います。</p></div><a class="mini-back" href="index.html">← ARCADE</a></section>
+      </main>
+      <footer class="mini-footer"><span>TAKE YOUR TIME, TRUST YOUR MEMORY</span><span>© <span id="currentYear">2025</span> 893</span><span>8 PAIRS / 16 CARDS</span></footer>
+    </div>
+    <script src="memory.js"></script>
+  </body>
+</html>

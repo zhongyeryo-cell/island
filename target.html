@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NEON TARGET — 30秒で光るターゲットを狙うミニゲーム。" />
+    <title>NEON TARGET — 893 ARCADE</title>
+    <link rel="stylesheet" href="mini.css" />
+  </head>
+  <body>
+    <div class="mini-shell">
+      <header class="mini-header">
+        <a class="mini-brand" href="index.html" aria-label="ゲーム一覧へ戻る"><span class="mini-brand-mark">８</span><span class="mini-brand-copy"><strong>NEON TARGET</strong><small>893 ARCADE / AIM</small></span></a>
+        <div class="mini-hud" aria-label="ゲーム情報"><div class="mini-stat"><span>SCORE</span><strong id="score">000000</strong></div><div class="mini-stat"><span>TIME</span><strong id="time">30.0</strong></div><div class="mini-stat"><span>BEST</span><strong id="best">000000</strong></div></div>
+      </header>
+      <main class="mini-main">
+        <section class="mini-stage" aria-label="NEON TARGET ゲーム画面">
+          <canvas id="gameCanvas" width="900" height="600">Canvasに対応したブラウザで遊べます。</canvas>
+          <button class="pause-button" id="pauseButton" type="button" aria-label="ゲームを一時停止" disabled>Ⅱ</button>
+          <div class="mini-overlay is-visible" id="overlay"><div class="mini-overlay-panel"><p class="mini-kicker" id="overlayKicker">RANGE 04 / LIVE FIRE</p><h1 id="overlayTitle">NEON <em>TARGET</em></h1><p class="mini-overlay-copy" id="overlayCopy">30秒で、光るターゲットを狙え。<br />小さくなる前に、すばやくクリック。</p><button class="mini-start" id="startButton" type="button">START ROUND <span>↗</span></button><p class="mini-help">CLICK / TAP THE TARGET　·　PRESS P TO PAUSE</p><p class="mini-best" id="overlayBest">BEST 000000</p></div></div>
+        </section>
+        <section class="mini-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>ターゲットの中心をクリック／タップ。連続で当てるとコンボボーナス！</p></div><a class="mini-back" href="index.html">← ARCADE</a></section>
+      </main>
+      <footer class="mini-footer"><span>STEADY HANDS, BRIGHT SCORE</span><span>© <span id="currentYear">2025</span> 893</span><span>30 SEC ROUND</span></footer>
+    </div>
+    <script src="target.js"></script>
+  </body>
+</html>

@@ -3,204 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="デザイナー兼フロントエンドエンジニア、８９３の自己紹介ページ。"
-    />
-    <title>８９３ — Profile</title>
-    <link rel="stylesheet" href="styles.css" />
+    <meta name="description" content="８９３ ARCADE — すぐに遊べるミニゲームのゲームポータル。" />
+    <title>893 ARCADE — Play Something Good</title>
+    <link rel="stylesheet" href="portal.css" />
   </head>
   <body>
-    <a class="skip-link" href="#main">本文へ移動</a>
+    <a class="skip-link" href="#games">ゲーム一覧へ移動</a>
+    <div class="portal-shell">
+      <header class="portal-header">
+        <a class="portal-brand" href="#top" aria-label="893 ARCADE トップへ">
+          <span class="brand-mark">８</span>
+          <span class="brand-copy"><strong>893 ARCADE</strong><small>MINI GAMES / PLAYGROUND</small></span>
+        </a>
+        <nav class="portal-nav" aria-label="メインナビゲーション">
+          <a href="#games">GAMES <span>06</span></a>
+          <a href="#daily">DAILY PICK</a>
+        </nav>
+        <div class="header-score"><span>YOUR BEST</span><strong id="portalHighScore">000000</strong></div>
+      </header>
 
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="８９３ トップへ">
-        <span class="brand-mark">８</span>
-        <span class="brand-copy">
-          <strong>８９３</strong>
-          <small>PROFILE / 2025</small>
-        </span>
-      </a>
-
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
-        <span class="menu-toggle-label">Menu</span>
-        <span class="menu-icon" aria-hidden="true"><i></i><i></i></span>
-      </button>
-
-      <nav class="site-nav" id="site-nav" aria-label="メインナビゲーション">
-        <a href="#about">About <span>01</span></a>
-        <a href="#skills">Skills <span>02</span></a>
-        <a href="#story">Story <span>03</span></a>
-        <a class="nav-play" href="game.html">Play <span>↗</span></a>
-        <a class="nav-contact" href="#contact">Let's talk <span>↗</span></a>
-      </nav>
-    </header>
-
-    <main id="main">
-      <section class="hero page-grid" id="top" aria-labelledby="hero-title">
-        <div class="hero-copy reveal">
-          <p class="eyebrow"><span class="eyebrow-line"></span> HELLO, I'M ８９３</p>
-          <h1 id="hero-title">つくること、<br /><em>伝えること。</em><br />その間にいます。</h1>
-          <p class="hero-lead">
-            デザインとコードで、まだ名前のない<br class="desktop-only" />
-            アイデアをカタチにする人です。
-          </p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="#about">プロフィールを見る <span>↓</span></a>
-            <a class="text-link" href="#contact">お仕事の相談 <span>↗</span></a>
+      <main id="top">
+        <section class="portal-hero">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="eyebrow-line"></span> HELLO, PLAYER</p>
+            <h1>PLAY<br /><em>SOMETHING</em><br />GOOD.</h1>
+            <p class="hero-lead">ちょっと休憩したいときに。<br />気分で選べる、５つのミニゲーム。</p>
+            <a class="hero-button" href="#games">ゲームを選ぶ <span>↓</span></a>
           </div>
-        </div>
+          <div class="hero-console" aria-hidden="true">
+            <div class="console-glow"></div>
+            <div class="console-grid"></div>
+            <span class="console-label label-top">INSERT COIN / 893</span>
+            <span class="console-label label-side">PRESS<br />START</span>
+            <div class="console-screen"><span class="screen-dot"></span><span class="screen-title">READY<br /><b>PLAYER 1</b></span><span class="screen-line"></span><span class="screen-score">000000</span></div>
+            <div class="console-controls"><span class="joystick"></span><span class="console-button"></span><span class="console-button small"></span></div>
+          </div>
+        </section>
 
-        <div class="hero-visual reveal reveal-delay" role="img" aria-label="８９３のプロフィールイラスト">
-          <div class="visual-stamp" aria-hidden="true"><span>SCROLL</span><b>↓</b></div>
-          <div class="portrait-card">
-            <div class="portrait-topline"><span>８９３ / PROFILE</span><span>01 — 04</span></div>
-            <div class="portrait-art" aria-hidden="true">
-              <div class="sun"></div>
-              <div class="orbit orbit-one"></div>
-              <div class="orbit orbit-two"></div>
-              <div class="portrait-head"></div>
-              <div class="portrait-hair"></div>
-              <div class="portrait-body"></div>
-              <div class="portrait-shirt"></div>
-              <div class="portrait-detail detail-one"></div>
-              <div class="portrait-detail detail-two"></div>
-              <span class="portrait-label">curious<br />by nature</span>
+        <section class="games-section" id="games" aria-labelledby="games-title">
+          <div class="section-kicker"><span>01</span><i></i><span>GAME SELECT</span></div>
+          <div class="section-heading-row">
+            <div><p class="eyebrow">CHOOSE YOUR MOOD</p><h2 id="games-title">どれで<br /><em>遊ぶ？</em></h2></div>
+            <div class="filter-bar" role="group" aria-label="ゲームのカテゴリで絞り込む">
+              <button class="filter-button is-active" type="button" data-filter="all">ALL <span>06</span></button>
+              <button class="filter-button" type="button" data-filter="action">ACTION</button>
+              <button class="filter-button" type="button" data-filter="puzzle">PUZZLE</button>
+              <button class="filter-button" type="button" data-filter="classic">CLASSIC</button>
             </div>
-            <div class="portrait-bottomline"><span>DESIGN × FRONTEND</span><span>東京 / 1998</span></div>
           </div>
-          <p class="visual-caption">日常に、ほんの少しの<br /><strong>「おもしろい」</strong>を。</p>
-        </div>
 
-        <div class="hero-meta reveal">
-          <span>SCROLL TO EXPLORE</span>
-          <span class="meta-rule"></span>
-          <span>01 / 04</span>
-        </div>
-      </section>
-
-      <section class="intro-section section-shell" id="about" aria-labelledby="about-title">
-        <div class="section-kicker reveal"><span>01</span><span class="kicker-rule"></span><span>ABOUT ME</span></div>
-        <div class="section-heading reveal">
-          <p class="eyebrow">A LITTLE ABOUT ME</p>
-          <h2 id="about-title">好奇心を、<br /><span>前に進む力に。</span></h2>
-        </div>
-
-        <div class="about-layout">
-          <div class="about-note reveal">
-            <span class="quote-mark">“</span>
-            <p>わからないことがあると、<br />つい夢中になってしまいます。</p>
-            <span class="note-sign">— ８９３'S NOTE</span>
+          <div class="game-grid">
+            <a class="game-card game-card-featured" data-category="action" href="game.html">
+              <div class="game-thumb thumb-neon"><span class="thumb-number">01</span><span class="thumb-status">● LIVE</span><div class="thumb-stars"></div><div class="thumb-ship"></div><div class="thumb-orbit"></div><strong>NEON<br />PATROL</strong></div>
+              <div class="card-copy"><div><span class="card-category">ACTION / SHOOTING</span><h3>NEON PATROL</h3></div><span class="card-arrow">↗</span><p>迫りくるドローンを撃ち落とせ。どこまで空を守れる？</p><div class="card-meta"><span>ARROW / WASD</span><span>HIGH SCORE</span></div></div>
+            </a>
+            <a class="game-card" data-category="action" href="dodge.html">
+              <div class="game-thumb thumb-astro"><span class="thumb-number">02</span><span class="thumb-status">● LIVE</span><div class="thumb-planet planet-one"></div><div class="thumb-planet planet-two"></div><div class="thumb-rocket"></div><strong>ASTRO<br />DODGE</strong></div>
+              <div class="card-copy"><div><span class="card-category">ACTION / DODGE</span><h3>ASTRO DODGE</h3></div><span class="card-arrow">↗</span><p>小惑星の雨をすり抜けろ。反射神経が勝負。</p><div class="card-meta"><span>MOVE / A or D</span><span>ENDLESS</span></div></div>
+            </a>
+            <a class="game-card" data-category="puzzle" href="memory.html">
+              <div class="game-thumb thumb-memory"><span class="thumb-number">03</span><span class="thumb-status">● LIVE</span><div class="memory-symbols"><i>✦</i><i>◈</i><i>○</i><i>△</i></div><strong>PIXEL<br />MATCH</strong></div>
+              <div class="card-copy"><div><span class="card-category">PUZZLE / MEMORY</span><h3>PIXEL MATCH</h3></div><span class="card-arrow">↗</span><p>カードをめくって同じ絵柄を探そう。記憶力の出番。</p><div class="card-meta"><span>CLICK / TAP</span><span>16 CARDS</span></div></div>
+            </a>
+            <a class="game-card" data-category="action" href="target.html">
+              <div class="game-thumb thumb-target"><span class="thumb-number">04</span><span class="thumb-status">● LIVE</span><div class="target-halo"></div><div class="target-core"></div><div class="target-cross">+</div><strong>NEON<br />TARGET</strong></div>
+              <div class="card-copy"><div><span class="card-category">ARCADE / AIM</span><h3>NEON TARGET</h3></div><span class="card-arrow">↗</span><p>30秒でいくつ当てられる？光るターゲットを狙おう。</p><div class="card-meta"><span>CLICK / TAP</span><span>30 SECONDS</span></div></div>
+            </a>
+            <a class="game-card" data-category="classic" href="tictactoe.html">
+              <div class="game-thumb thumb-tic"><span class="thumb-number">05</span><span class="thumb-status">● LIVE</span><div class="tic-board"><i>×</i><i>○</i><i>×</i><i>○</i><i>×</i></div><strong>TIC<br />TAC TOE</strong></div>
+              <div class="card-copy"><div><span class="card-category">CLASSIC / VS CPU</span><h3>TIC TAC TOE</h3></div><span class="card-arrow">↗</span><p>３つそろえたら勝ち。CPUの一手先を読もう。</p><div class="card-meta"><span>CLICK / TAP</span><span>1 PLAYER</span></div></div>
+            </a>
+            <a class="game-card game-card-featured game-card-fps" data-category="action" href="fps.html">
+              <div class="game-thumb thumb-fps"><span class="thumb-number">06</span><span class="thumb-status">● NEW</span><div class="fps-grid"></div><div class="fps-cross">+</div><div class="fps-wall"></div><strong>VOID<br />RUNNER</strong></div>
+              <div class="card-copy"><div><span class="card-category">ACTION / 3D FPS</span><h3>VOID RUNNER</h3></div><span class="card-arrow">↗</span><p>迷路の奥に潜むドローンを探して、すべて撃ち落とせ。</p><div class="card-meta"><span>WASD / MOUSE</span><span>FIRST PERSON</span></div></div>
+            </a>
           </div>
-          <div class="about-body reveal reveal-delay">
-            <p class="body-lead">
-              はじめまして、８９３です。東京を拠点に、デザインとフロントエンド開発をしています。
-            </p>
-            <p>
-              見た目を整えるだけでなく、「なぜこれをつくるのか」から一緒に考えるのが好きです。会話の中にある小さな違和感を拾い、使う人の気持ちを想像しながら、心地よくてちょっと楽しい体験を設計します。
-            </p>
-            <p>
-              休日は知らない街を散歩したり、喫茶店でスケッチをしたり。インプットしたものを自分の手で試してみる時間が、次のアイデアを連れてきてくれます。
-            </p>
-            <a class="inline-link" href="#story">これまでのことを見る <span>↗</span></a>
-          </div>
-        </div>
+          <p class="empty-message" id="emptyMessage" hidden>このカテゴリのゲームは準備中です。</p>
+        </section>
 
-        <div class="fact-grid reveal">
-          <div class="fact-item"><strong>03<span>+</span></strong><span>years of experience</span></div>
-          <div class="fact-item"><strong>24<span>+</span></strong><span>projects shipped</span></div>
-          <div class="fact-item"><strong>∞</strong><span>curiosity in progress</span></div>
-          <div class="fact-location"><span class="location-dot"></span><span>Tokyo, Japan<br /><small>available worldwide</small></span></div>
-        </div>
-      </section>
+        <section class="daily-section" id="daily" aria-labelledby="daily-title">
+          <div class="daily-copy"><p class="eyebrow"><span class="eyebrow-line"></span> DAILY PICK</p><h2 id="daily-title">今日の気分に、<br /><em>一発。</em></h2><p>迷ったらこれ。ボタンを押すたび、ランダムにおすすめします。</p><a class="daily-button" id="dailyButton" href="game.html">PLAY DAILY PICK <span>↗</span></a></div>
+          <div class="daily-art" aria-hidden="true"><span class="daily-star">✦</span><span class="daily-ring ring-one"></span><span class="daily-ring ring-two"></span><span class="daily-number">03</span><span class="daily-caption">RANDOM<br />IS A<br />GOOD<br />IDEA</span></div>
+        </section>
+      </main>
 
-      <section class="skills-section section-shell" id="skills" aria-labelledby="skills-title">
-        <div class="section-kicker reveal"><span>02</span><span class="kicker-rule"></span><span>WHAT I DO</span></div>
-        <div class="skills-header">
-          <div class="section-heading reveal">
-            <p class="eyebrow">MY TOOLBOX</p>
-            <h2 id="skills-title">考えて、<br /><span>つくって、育てる。</span></h2>
-          </div>
-          <p class="skills-summary reveal reveal-delay">得意なことを掛け合わせて、<br />チームのアイデアを前に進めます。</p>
-        </div>
-
-        <div class="skills-grid">
-          <article class="skill-card skill-card-main reveal">
-            <div class="card-number">01</div>
-            <div class="skill-icon icon-compass" aria-hidden="true"><span></span></div>
-            <h3>UI / UX DESIGN</h3>
-            <p>ユーザーの声と事業の想いをつなぎ、迷わず使える体験を設計します。</p>
-            <div class="skill-tags"><span>Research</span><span>Wireframe</span><span>Figma</span></div>
-          </article>
-          <article class="skill-card reveal reveal-delay">
-            <div class="card-number">02</div>
-            <div class="skill-icon icon-code" aria-hidden="true"><span>&lt;/&gt;</span></div>
-            <h3>FRONTEND</h3>
-            <p>デザインの意図をくみ取り、気持ちよく動く画面に仕上げます。</p>
-            <div class="skill-tags"><span>HTML / CSS</span><span>JavaScript</span><span>React</span></div>
-          </article>
-          <article class="skill-card reveal reveal-delay-2">
-            <div class="card-number">03</div>
-            <div class="skill-icon icon-heart" aria-hidden="true">♡</div>
-            <h3>TEAMING</h3>
-            <p>職種を越えて対話し、みんなで納得できる答えを見つけます。</p>
-            <div class="skill-tags"><span>Direction</span><span>Workshop</span><span>Writing</span></div>
-          </article>
-        </div>
-      </section>
-
-      <section class="story-section section-shell" id="story" aria-labelledby="story-title">
-        <div class="section-kicker reveal"><span>03</span><span class="kicker-rule"></span><span>MY STORY</span></div>
-        <div class="story-layout">
-          <div class="story-heading section-heading reveal">
-            <p class="eyebrow">A FEW MILESTONES</p>
-            <h2 id="story-title">寄り道も、<br /><span>ぜんぶ今につながる。</span></h2>
-            <p class="story-intro">遠回りに見えた経験が、<br />誰かの気持ちを想像する<br />引き出しになっています。</p>
-          </div>
-          <div class="timeline reveal reveal-delay">
-            <article class="timeline-item">
-              <div class="timeline-year">2021</div>
-              <div class="timeline-marker"></div>
-              <div class="timeline-copy"><h3>デザインの入り口</h3><p>大学で情報デザインを専攻。初めてつくったアプリが、誰かに使ってもらえる喜びを知る。</p></div>
-            </article>
-            <article class="timeline-item">
-              <div class="timeline-year">2023</div>
-              <div class="timeline-marker"></div>
-              <div class="timeline-copy"><h3>現場で学ぶ</h3><p>プロダクトチームに参加。デザインから実装まで、チームでつくる面白さに夢中になる。</p></div>
-            </article>
-            <article class="timeline-item timeline-item-current">
-              <div class="timeline-year">NOW</div>
-              <div class="timeline-marker"></div>
-              <div class="timeline-copy"><h3>もっと遠くへ</h3><p>業界や国境を越えて、いいアイデアが届く仕組みをつくる。新しい出会いを探しています。</p></div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="contact-section section-shell" id="contact" aria-labelledby="contact-title">
-        <div class="contact-card reveal">
-          <div class="contact-noise" aria-hidden="true"></div>
-          <div class="contact-content">
-            <p class="eyebrow eyebrow-light">04 / SAY HELLO</p>
-            <h2 id="contact-title">一緒に、<br /><em>おもしろいもの</em><br />つくりませんか？</h2>
-            <p>プロジェクトのご相談、ちょっとした雑談も大歓迎です。</p>
-            <div class="contact-actions">
-              <a class="button button-light" href="mailto:hello@mio-sakura.jp">hello@mio-sakura.jp <span>↗</span></a>
-              <button class="copy-email" type="button" data-email="hello@mio-sakura.jp">メールアドレスをコピー</button>
-            </div>
-            <span class="copy-status" role="status" aria-live="polite"></span>
-          </div>
-          <div class="contact-orbit orbit-large" aria-hidden="true"><span>LET'S<br />MAKE<br />IT<br />REAL</span></div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer section-shell">
-      <div class="footer-brand"><span class="brand-mark">８</span><span>８９３</span></div>
-      <p>© <span id="current-year">2025</span> ８９３. Made with curiosity.</p>
-      <a href="#top" class="back-top">BACK TO TOP <span>↑</span></a>
-    </footer>
-
-    <script src="script.js"></script>
+      <footer class="portal-footer"><div class="footer-brand"><span class="brand-mark">８</span><span>893 ARCADE</span></div><p>© <span id="currentYear">2025</span> 893. KEEP PLAYING.</p><a href="#top">BACK TO TOP <span>↑</span></a></footer>
+    </div>
+    <script src="portal.js"></script>
   </body>
 </html>
