@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="VOID RUNNER — 893 ARCADEのブラウザ3D FPSゲーム。" />
-    <title>VOID RUNNER — 893 ARCADE</title>
+    <meta name="description" content="VOID RUNNER — 宝を集めて不死身のボスに挑む、893 ARCADEのホラー3D FPSゲーム。" />
+    <title>VOID RUNNER — NIGHTMARE MODE</title>
     <link rel="stylesheet" href="mini.css" />
     <link rel="stylesheet" href="fps.css" />
   </head>
@@ -12,17 +12,17 @@
     <div class="mini-shell fps-shell">
       <header class="mini-header">
         <a class="mini-brand" href="index.html" aria-label="ゲーム一覧へ戻る"><span class="mini-brand-mark">８</span><span class="mini-brand-copy"><strong>VOID RUNNER</strong><small>893 ARCADE / 3D FPS</small></span></a>
-        <div class="mini-hud" aria-label="ゲーム情報"><div class="mini-stat"><span>HOSTILES</span><strong id="hostiles">00 / 08</strong></div><div class="mini-stat"><span>HP</span><strong id="health">◆◆◆</strong></div><div class="mini-stat"><span>BEST</span><strong id="best">000000</strong></div></div>
+        <div class="mini-hud" aria-label="ゲーム情報"><div class="mini-stat"><span>HOSTILES</span><strong id="hostiles">00 / 08</strong></div><div class="mini-stat"><span>LIVES</span><strong id="lives">03</strong></div><div class="mini-stat"><span>HP</span><strong id="health">◆◆◆</strong></div><div class="mini-stat"><span>RELICS</span><strong id="relics">00 / 10</strong></div><div class="mini-stat"><span>BEST</span><strong id="best">000000</strong></div></div>
       </header>
       <main class="mini-main">
         <section class="mini-stage fps-stage" aria-label="VOID RUNNER 3D FPSゲーム画面">
           <canvas id="gameCanvas" width="960" height="640" tabindex="0">Canvasに対応したブラウザで遊べます。</canvas>
           <div class="fps-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
-          <div class="fps-location" aria-hidden="true"><span>ZONE 893</span><i></i><span id="missionStatus">SEARCHING</span></div>
+          <div class="fps-location" aria-hidden="true"><span>ZONE 893 / NIGHT</span><i></i><span id="missionStatus">SEARCHING</span></div>
           <button class="pause-button" id="pauseButton" type="button" aria-label="ゲームを一時停止" disabled>Ⅱ</button>
-          <div class="mini-overlay is-visible" id="overlay"><div class="mini-overlay-panel"><p class="mini-kicker" id="overlayKicker">ZONE 893 / FIRST CONTACT</p><h1 id="overlayTitle">VOID <em>RUNNER</em></h1><p class="mini-overlay-copy" id="overlayCopy">迷路の奥に潜むドローンを探し出せ。<br />すべて撃ち落とせば、ミッション完了。</p><button class="mini-start" id="startButton" type="button">START MISSION <span>↗</span></button><p class="mini-help">WASD / ARROWS MOVE　·　MOUSE / CLICK FIRE</p><p class="mini-best" id="overlayBest">BEST 000000</p></div></div>
+          <div class="mini-overlay is-visible" id="overlay"><div class="mini-overlay-panel"><p class="mini-kicker" id="overlayKicker">ZONE 893 / NIGHTMARE MODE</p><h1 id="overlayTitle">VOID <em>RUNNER</em></h1><p class="mini-overlay-copy" id="overlayCopy">暗い迷路に散った10個の宝を集めろ。<br />追ってくる「それ」は、まだ倒せない。</p><button class="mini-start" id="startButton" type="button">ENTER THE DARK <span>↗</span></button><p class="mini-help">WASD / ARROWS MOVE　·　HOLD CLICK / SPACE FIRE</p><p class="mini-best" id="overlayBest">BEST 000000</p></div></div>
         </section>
-        <section class="mini-bottom fps-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>WASDまたは矢印キーで移動、マウスで視点を動かしてクリックで射撃。<br />スマホは画面下のボタンで移動、画面タップで射撃できます。</p></div><div class="fps-touch-controls" aria-label="タッチ操作"><button class="fps-control" data-control="left" type="button" aria-label="左へ移動">←</button><button class="fps-control" data-control="forward" type="button" aria-label="前へ移動">↑</button><button class="fps-control" data-control="back" type="button" aria-label="後ろへ移動">↓</button><button class="fps-control" data-control="right" type="button" aria-label="右へ移動">→</button></div><a class="mini-back" href="index.html">← ARCADE</a></section>
+        <section class="mini-bottom fps-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>WASDまたは矢印キーで移動、マウスで視点を動かして長押し連射。<br />宝を10個集めるまでボスは無敵。集めたら、追跡者を撃ち倒そう。</p></div><div class="fps-touch-controls" aria-label="タッチ操作"><button class="fps-control" data-control="left" type="button" aria-label="左へ移動">←</button><button class="fps-control" data-control="forward" type="button" aria-label="前へ移動">↑</button><button class="fps-control" data-control="back" type="button" aria-label="後ろへ移動">↓</button><button class="fps-control" data-control="right" type="button" aria-label="右へ移動">→</button><button class="fps-control fps-fire" data-control="fire" type="button" aria-label="連射">FIRE</button></div><a class="mini-back" href="index.html">← ARCADE</a></section>
       </main>
       <footer class="mini-footer"><span>LOOK SHARP, RUN DEEP</span><span>© <span id="currentYear">2025</span> 893</span><span>PRESS P TO PAUSE</span></footer>
     </div>
