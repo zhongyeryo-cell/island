@@ -14,6 +14,8 @@ const startButton = document.querySelector('#startButton');
 const pauseButton = document.querySelector('#pauseButton');
 const currentYear = document.querySelector('#currentYear');
 const stageElement = document.querySelector('#stageLabel');
+const medkitsElement = document.querySelector('#medkits');
+const viewModeElement = document.querySelector('#viewMode');
 
 const WIDTH = 960;
 const HEIGHT = 640;
@@ -110,14 +112,17 @@ let activeStage = STAGES[0];
 let MAP = activeStage.map;
 const keys = new Set();
 const player = { x: 1.5, y: 1.5, angle: 0, hp: 100, hurt: 0, cooldown: 0 };
+const view = { mode: 'first' };
 const game = { mode: 'ready', score: 0, best: loadBest(), kills: 0, total: 8, relics: 0, relicTotal: 10, stageIndex: -1, time: 0, muzzle: 0, warning: 0 };
 let enemies = [];
 let enemyBullets = [];
 let treasures = [];
+let healingItems = [];
 let particles = [];
 let stars = [];
 let boss = null;
 let depthBuffer = new Float32Array(RAY_COUNT);
+let renderCamera = { x: player.x, y: player.y, angle: player.angle };
 
 function loadBest() {
   try { return Number(localStorage.getItem('void-runner-best')) || 0; } catch { return 0; }
@@ -150,6 +155,15 @@ function updateHud() {
   relicsElement.textContent = `${String(game.relics).padStart(2, '0')} / ${String(game.relicTotal).padStart(2, '0')}`;
   relicsElement.setAttribute('aria-label', `回収した宝 ${game.relics}個`);
   bestElement.textContent = formatScore(game.best);
+  if (medkitsElement) {
+    const remaining = healingItems.filter((item) => !item.collected).length;
+    medkitsElement.textContent = String(remaining).padStart(2, '0');
+    medkitsElement.setAttribute('aria-label', `残り回復アイテム ${remaining}個`);
+  }
+  if (viewModeElement) {
+    viewModeElement.textContent = view.mode === 'third' ? '3RD' : '1ST';
+    viewModeElement.setAttribute('aria-label', view.mode === 'third' ? '三人称視点' : '一人称視点');
+  }
   if (stageElement) {
     stageElement.textContent = `STAGE ${String(game.stageIndex + 1).padStart(2, '0')} / ${activeStage.name}`;
     stageElement.setAttribute('aria-label', `${activeStage.name}（${activeStage.location}）`);
@@ -185,6 +199,7 @@ function resetGame() {
   enemies = activeStage.enemySpawns.map(([x, y, phase], index) => ({ x, y, phase, alive: true, flash: 0, fireFlash: 0, hp: 70, maxHp: 70, speed: (.28 + (index % 3) * .035) * 3, shootTimer: 1.3 + index * .22 }));
   boss = { x: activeStage.bossSpawn[0], y: activeStage.bossSpawn[1], phase: 1.2, speed: .48, alive: true, vulnerable: false, hp: 500, maxHp: 500, flash: 0, fireFlash: 0, shootTimer: 1.8 };
   treasures = activeStage.treasureSpawns.map(([x, y], index) => ({ x, y, index, collected: false, phase: index * .8 }));
+  healingItems = generateHealingItems();
   updateHud();
   missionStatus.textContent = 'SEARCHING';
 }
@@ -194,7 +209,7 @@ function showOverlay(kind) {
   if (kind === 'ready') {
     overlayKicker.textContent = 'ZONE 893 / NIGHTMARE MODE';
     overlayTitle.innerHTML = 'VOID <em>RUNNER</em>';
-    overlayCopy.innerHTML = '暗い迷路に散った10個の宝を集めろ。<br />追ってくる「それ」は、まだ倒せない。';
+    overlayCopy.innerHTML = `${activeStage.name}に散った${game.relicTotal}個の宝と3個の回復アイテムを探せ。<br />追ってくる「それ」は、まだ倒せない。Qキーで視点変更。`;
     startButton.textContent = 'ENTER THE DARK  ↗';
   } else if (kind === 'win') {
     overlayKicker.textContent = 'ZONE CLEAR / THE NIGHT RELEASED';
@@ -214,22 +229,56 @@ function hideOverlay() { overlay.classList.remove('is-visible'); }
 function startGame() { resetGame(); game.mode = 'playing'; missionStatus.textContent = 'FIND RELICS'; pauseButton.disabled = false; pauseButton.textContent = 'Ⅱ'; pauseButton.setAttribute('aria-label', 'ゲームを一時停止'); hideOverlay(); canvas.focus(); }
 function finish(kind) { game.mode = kind; pauseButton.disabled = true; missionStatus.textContent = kind === 'win' ? 'CLEAR' : 'OFFLINE'; if (game.score > game.best) { game.best = game.score; saveBest(); } updateHud(); showOverlay(kind); if (document.pointerLockElement === canvas) document.exitPointerLock?.(); }
 function togglePause() { if (game.mode === 'playing') { game.mode = 'paused'; missionStatus.textContent = 'PAUSED'; pauseButton.textContent = '▶'; pauseButton.setAttribute('aria-label', 'ゲームを再開'); if (document.pointerLockElement === canvas) document.exitPointerLock?.(); } else if (game.mode === 'paused') { game.mode = 'playing'; updateMissionStatus(); pauseButton.textContent = 'Ⅱ'; pauseButton.setAttribute('aria-label', 'ゲームを一時停止'); } }
+function toggleView() { view.mode = view.mode === 'first' ? 'third' : 'first'; updateHud(); }
 
-function castRay(angle) {
+function generateHealingItems() {
+  const reserved = [
+    [player.x, player.y],
+    ...activeStage.enemySpawns.map(([x, y]) => [x, y]),
+    activeStage.bossSpawn,
+    ...activeStage.treasureSpawns,
+  ];
+  const candidates = [];
+  for (let y = 1; y < MAP.length - 1; y += 1) {
+    for (let x = 1; x < MAP[0].length - 1; x += 1) {
+      const point = [x + .5, y + .5];
+      if (MAP[y][x] !== '0' || reserved.some(([rx, ry]) => Math.hypot(point[0] - rx, point[1] - ry) < .7)) continue;
+      candidates.push(point);
+    }
+  }
+  for (let index = candidates.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [candidates[index], candidates[swapIndex]] = [candidates[swapIndex], candidates[index]];
+  }
+  return candidates.slice(0, 3).map(([x, y], index) => ({ x, y, index, collected: false, phase: random(0, Math.PI * 2) }));
+}
+
+function getRenderCamera() {
+  if (view.mode === 'first') return { x: player.x, y: player.y, angle: player.angle };
+  const distances = [.9, .72, .54, .36, 0];
+  for (const distance of distances) {
+    const x = player.x - Math.cos(player.angle) * distance;
+    const y = player.y - Math.sin(player.angle) * distance;
+    if (!isWall(x, y)) return { x, y, angle: player.angle };
+  }
+  return { x: player.x, y: player.y, angle: player.angle };
+}
+
+function castRay(angle, originX = player.x, originY = player.y) {
   const rayDirX = Math.cos(angle);
   const rayDirY = Math.sin(angle);
-  let mapX = Math.floor(player.x);
-  let mapY = Math.floor(player.y);
+  let mapX = Math.floor(originX);
+  let mapY = Math.floor(originY);
   const deltaX = Math.abs(1 / (rayDirX || 0.00001));
   const deltaY = Math.abs(1 / (rayDirY || 0.00001));
   let stepX; let stepY; let sideX; let sideY;
-  if (rayDirX < 0) { stepX = -1; sideX = (player.x - mapX) * deltaX; } else { stepX = 1; sideX = (mapX + 1 - player.x) * deltaX; }
-  if (rayDirY < 0) { stepY = -1; sideY = (player.y - mapY) * deltaY; } else { stepY = 1; sideY = (mapY + 1 - player.y) * deltaY; }
+  if (rayDirX < 0) { stepX = -1; sideX = (originX - mapX) * deltaX; } else { stepX = 1; sideX = (mapX + 1 - originX) * deltaX; }
+  if (rayDirY < 0) { stepY = -1; sideY = (originY - mapY) * deltaY; } else { stepY = 1; sideY = (mapY + 1 - originY) * deltaY; }
   let side = 0;
   let distance = 20;
   for (let step = 0; step < 40; step += 1) {
     if (sideX < sideY) { sideX += deltaX; mapX += stepX; side = 0; } else { sideY += deltaY; mapY += stepY; side = 1; }
-    if (MAP[mapY]?.[mapX] !== '0') { distance = side === 0 ? (mapX - player.x + (1 - stepX) / 2) / rayDirX : (mapY - player.y + (1 - stepY) / 2) / rayDirY; break; }
+    if (MAP[mapY]?.[mapX] !== '0') { distance = side === 0 ? (mapX - originX + (1 - stepX) / 2) / rayDirX : (mapY - originY + (1 - stepY) / 2) / rayDirY; break; }
   }
   return { distance: Math.max(.05, Math.abs(distance)), side, mapX, mapY };
 }
@@ -331,6 +380,17 @@ function collectTreasures() {
   });
 }
 
+function collectHealingItems() {
+  healingItems.forEach((item) => {
+    if (item.collected || player.hp >= 100 || Math.hypot(player.x - item.x, player.y - item.y) > .43) return;
+    item.collected = true;
+    player.hp = Math.min(100, player.hp + 30);
+    game.score += 35;
+    burst(item.x, item.y, '#66f3e2', 22, 1.5);
+    updateHud();
+  });
+}
+
 function shoot() {
   if (game.mode !== 'playing' || player.cooldown > 0) return;
   player.cooldown = .14;
@@ -394,6 +454,7 @@ function update(dt) {
   moveEnemies(dt);
   moveBoss(dt);
   collectTreasures();
+  collectHealingItems();
   updateEnemyFire(dt);
   enemies.filter((enemy) => enemy.alive).forEach((enemy) => { if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < .62) damagePlayer(18); });
   if (boss?.alive && Math.hypot(boss.x - player.x, boss.y - player.y) < .74) damagePlayer(30);
@@ -422,10 +483,10 @@ function drawFloorLines() {
 }
 
 function projectWorld(x, y, sizeFactor = .72) {
-  const dx = x - player.x;
-  const dy = y - player.y;
+  const dx = x - renderCamera.x;
+  const dy = y - renderCamera.y;
   const distance = Math.hypot(dx, dy);
-  const angle = normalizeAngle(Math.atan2(dy, dx) - player.angle);
+  const angle = normalizeAngle(Math.atan2(dy, dx) - renderCamera.angle);
   if (Math.abs(angle) > FOV * .62 || distance < .08) return null;
   const screenX = (WIDTH / 2) + (angle / FOV) * WIDTH;
   const spriteHeight = Math.min(560, HEIGHT / distance * sizeFactor);
@@ -439,6 +500,29 @@ function projectEnemy(enemy) { const projection = projectWorld(enemy.x, enemy.y,
 function drawTreasures() {
   const visible = treasures.filter((treasure) => !treasure.collected).map((treasure) => ({ treasure, projection: projectWorld(treasure.x, treasure.y, .34) })).filter((item) => item.projection).sort((a, b) => b.projection.distance - a.projection.distance);
   visible.forEach(({ treasure, projection }) => { const { screenX, spriteHeight, top } = projection; const centerY = top + spriteHeight * .5; const size = Math.max(7, spriteHeight * .22); ctx.save(); ctx.translate(screenX, centerY); ctx.rotate(game.time * .7 + treasure.phase); ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18; ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size * .68, 0); ctx.lineTo(0, size); ctx.lineTo(-size * .68, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff0b0'; ctx.beginPath(); ctx.moveTo(0, -size * .45); ctx.lineTo(size * .3, 0); ctx.lineTo(0, size * .45); ctx.lineTo(-size * .3, 0); ctx.closePath(); ctx.fill(); ctx.restore(); });
+}
+
+function drawHealingItems() {
+  const visible = healingItems.filter((item) => !item.collected).map((item) => ({ item, projection: projectWorld(item.x, item.y, .38) })).filter((entry) => entry.projection).sort((a, b) => b.projection.distance - a.projection.distance);
+  visible.forEach(({ item, projection }) => {
+    const { screenX, spriteHeight, top } = projection;
+    const size = Math.max(8, spriteHeight * .2);
+    const centerY = top + spriteHeight * .53;
+    ctx.save();
+    ctx.translate(screenX, centerY);
+    ctx.rotate(Math.sin(game.time * 1.5 + item.phase) * .08);
+    ctx.shadowColor = '#66f3e2';
+    ctx.shadowBlur = 19;
+    ctx.fillStyle = 'rgba(7,22,37,.95)';
+    ctx.fillRect(-size, -size, size * 2, size * 2);
+    ctx.strokeStyle = '#66f3e2';
+    ctx.lineWidth = Math.max(1, size * .12);
+    ctx.strokeRect(-size, -size, size * 2, size * 2);
+    ctx.fillStyle = '#66f3e2';
+    ctx.fillRect(-size * .22, -size * .68, size * .44, size * 1.36);
+    ctx.fillRect(-size * .68, -size * .22, size * 1.36, size * .44);
+    ctx.restore();
+  });
 }
 
 function drawEnemyBullets() {
@@ -464,6 +548,54 @@ function drawEnemyGun(screenX, top, spriteHeight, width, enemy) {
   ctx.fillStyle = '#3c263b'; ctx.fillRect(screenX + width * .2, top + spriteHeight * .54, width * .34, spriteHeight * .085);
   ctx.fillStyle = enemy === boss ? '#ff315f' : '#ffd166'; ctx.fillRect(screenX + width * .49, top + spriteHeight * .54, width * .2, spriteHeight * .05);
   if (enemy.fireFlash > 0) { ctx.globalAlpha = enemy.fireFlash / .13; ctx.fillStyle = '#fff3bb'; ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 18; ctx.beginPath(); ctx.arc(screenX + width * .74, top + spriteHeight * .565, Math.max(3, spriteHeight * .07), 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+}
+
+function drawPlayerAvatar() {
+  if (view.mode !== 'third') return;
+  const projection = projectWorld(player.x, player.y, .56);
+  if (!projection) return;
+  const { screenX, spriteHeight, top } = projection;
+  const width = spriteHeight * .34;
+  const center = top + spriteHeight * .5;
+  ctx.save();
+  ctx.globalAlpha = .98;
+  ctx.shadowColor = '#66f3e2';
+  ctx.shadowBlur = 16;
+  ctx.fillStyle = 'rgba(7,12,27,.96)';
+  ctx.beginPath();
+  ctx.moveTo(screenX - width * .4, top + spriteHeight * .36);
+  ctx.lineTo(screenX + width * .4, top + spriteHeight * .36);
+  ctx.lineTo(screenX + width * .52, top + spriteHeight);
+  ctx.lineTo(screenX - width * .52, top + spriteHeight);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#66f3e2';
+  ctx.lineWidth = Math.max(1, spriteHeight * .018);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#172b46';
+  ctx.beginPath();
+  ctx.arc(screenX, top + spriteHeight * .24, width * .32, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#66f3e2';
+  ctx.stroke();
+  ctx.fillStyle = '#ff5ba7';
+  ctx.fillRect(screenX - width * .14, top + spriteHeight * .22, width * .28, Math.max(2, spriteHeight * .035));
+  ctx.fillStyle = '#283d5c';
+  ctx.fillRect(screenX - width * .72, center, width * .33, spriteHeight * .08);
+  ctx.fillRect(screenX + width * .39, center, width * .33, spriteHeight * .08);
+  ctx.fillStyle = '#ffd166';
+  ctx.fillRect(screenX + width * .55, center, width * .4, spriteHeight * .045);
+  if (game.muzzle > 0) {
+    ctx.globalAlpha = game.muzzle / .11;
+    ctx.fillStyle = '#fff3bb';
+    ctx.shadowColor = '#ffd166';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    ctx.arc(screenX + width * .98, center + spriteHeight * .02, Math.max(3, spriteHeight * .07), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawEnemies() {
@@ -494,7 +626,7 @@ function drawBoss() {
 function drawParticles() { particles.forEach((particle) => { const projection = projectWorld(particle.x, particle.y, .6); if (!projection) return; ctx.globalAlpha = Math.max(0, particle.life / particle.maxLife); ctx.fillStyle = particle.color; const size = Math.max(2, projection.spriteHeight * particle.size); ctx.fillRect(projection.screenX, projection.top + projection.spriteHeight * .45, size, size); }); ctx.globalAlpha = 1; }
 
 function drawMinimap() {
-  const size = 6; const offsetX = 18; const offsetY = HEIGHT - MAP.length * size - 18; ctx.save(); ctx.globalAlpha = .72; ctx.fillStyle = 'rgba(5,6,13,.84)'; ctx.fillRect(offsetX - 6, offsetY - 6, MAP[0].length * size + 12, MAP.length * size + 12); MAP.forEach((row, y) => [...row].forEach((cell, x) => { ctx.fillStyle = cell === '0' ? 'rgba(255,49,95,.08)' : 'rgba(255,49,95,.4)'; ctx.fillRect(offsetX + x * size, offsetY + y * size, size - 1, size - 1); })); treasures.filter((treasure) => !treasure.collected).forEach((treasure) => { ctx.fillStyle = '#ffd166'; ctx.fillRect(offsetX + treasure.x * size - 1, offsetY + treasure.y * size - 1, 2, 2); }); enemies.filter((enemy) => enemy.alive).forEach((enemy) => { ctx.fillStyle = '#ff5ba7'; ctx.fillRect(offsetX + enemy.x * size - 1.5, offsetY + enemy.y * size - 1.5, 3, 3); }); if (boss?.alive) { ctx.fillStyle = '#ff315f'; ctx.beginPath(); ctx.arc(offsetX + boss.x * size, offsetY + boss.y * size, 3.5, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = '#66f3e2'; ctx.beginPath(); ctx.arc(offsetX + player.x * size, offsetY + player.y * size, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#66f3e2'; ctx.beginPath(); ctx.moveTo(offsetX + player.x * size, offsetY + player.y * size); ctx.lineTo(offsetX + (player.x + Math.cos(player.angle) * 1.8) * size, offsetY + (player.y + Math.sin(player.angle) * 1.8) * size); ctx.stroke(); ctx.restore();
+  const size = 6; const offsetX = 18; const offsetY = HEIGHT - MAP.length * size - 18; ctx.save(); ctx.globalAlpha = .72; ctx.fillStyle = 'rgba(5,6,13,.84)'; ctx.fillRect(offsetX - 6, offsetY - 6, MAP[0].length * size + 12, MAP.length * size + 12); MAP.forEach((row, y) => [...row].forEach((cell, x) => { ctx.fillStyle = cell === '0' ? 'rgba(255,49,95,.08)' : 'rgba(255,49,95,.4)'; ctx.fillRect(offsetX + x * size, offsetY + y * size, size - 1, size - 1); })); treasures.filter((treasure) => !treasure.collected).forEach((treasure) => { ctx.fillStyle = '#ffd166'; ctx.fillRect(offsetX + treasure.x * size - 1, offsetY + treasure.y * size - 1, 2, 2); }); healingItems.filter((item) => !item.collected).forEach((item) => { ctx.fillStyle = '#66f3e2'; ctx.fillRect(offsetX + item.x * size - 1.5, offsetY + item.y * size - 1.5, 3, 3); }); enemies.filter((enemy) => enemy.alive).forEach((enemy) => { ctx.fillStyle = '#ff5ba7'; ctx.fillRect(offsetX + enemy.x * size - 1.5, offsetY + enemy.y * size - 1.5, 3, 3); }); if (boss?.alive) { ctx.fillStyle = '#ff315f'; ctx.beginPath(); ctx.arc(offsetX + boss.x * size, offsetY + boss.y * size, 3.5, 0, Math.PI * 2); ctx.fill(); } ctx.fillStyle = '#66f3e2'; ctx.beginPath(); ctx.arc(offsetX + player.x * size, offsetY + player.y * size, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.strokeStyle = '#66f3e2'; ctx.beginPath(); ctx.moveTo(offsetX + player.x * size, offsetY + player.y * size); ctx.lineTo(offsetX + (player.x + Math.cos(player.angle) * 1.8) * size, offsetY + (player.y + Math.sin(player.angle) * 1.8) * size); ctx.stroke(); ctx.restore();
 }
 
 function drawHorrorOverlay() {
@@ -504,10 +636,11 @@ function drawHorrorOverlay() {
 }
 
 function drawWorld() {
+  renderCamera = getRenderCamera();
   drawBackground();
-  for (let column = 0; column < RAY_COUNT; column += 1) { const angle = player.angle - FOV / 2 + (column / RAY_COUNT) * FOV; const ray = castRay(angle); depthBuffer[column] = ray.distance; const wallHeight = Math.min(HEIGHT * 2, HEIGHT / ray.distance); const top = HEIGHT / 2 - wallHeight / 2; ctx.fillStyle = wallColor(ray.distance, ray.side, ray.mapX, ray.mapY); ctx.fillRect(column * RAY_STEP, top, RAY_STEP + 1, wallHeight); }
-  drawFloorLines(); drawTreasures(); drawEnemyBullets(); drawEnemies(); drawBoss(); drawParticles(); drawMinimap();
-  if (game.muzzle > 0) { ctx.globalAlpha = game.muzzle / .11; ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(WIDTH / 2, HEIGHT / 2 + 10, 28 + Math.random() * 15, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
+  for (let column = 0; column < RAY_COUNT; column += 1) { const angle = renderCamera.angle - FOV / 2 + (column / RAY_COUNT) * FOV; const ray = castRay(angle, renderCamera.x, renderCamera.y); depthBuffer[column] = ray.distance; const wallHeight = Math.min(HEIGHT * 2, HEIGHT / ray.distance); const top = HEIGHT / 2 - wallHeight / 2; ctx.fillStyle = wallColor(ray.distance, ray.side, ray.mapX, ray.mapY); ctx.fillRect(column * RAY_STEP, top, RAY_STEP + 1, wallHeight); }
+  drawFloorLines(); drawTreasures(); drawHealingItems(); drawEnemyBullets(); drawEnemies(); drawBoss(); drawPlayerAvatar(); drawParticles(); drawMinimap();
+  if (game.muzzle > 0 && view.mode === 'first') { ctx.globalAlpha = game.muzzle / .11; ctx.fillStyle = '#ffd166'; ctx.beginPath(); ctx.arc(WIDTH / 2, HEIGHT / 2 + 10, 28 + Math.random() * 15, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; }
   drawHorrorOverlay();
   if (player.hurt > 0) { ctx.fillStyle = `rgba(255,31,95,${player.hurt / 8})`; ctx.fillRect(0, 0, WIDTH, HEIGHT); }
 }
@@ -516,7 +649,7 @@ function drawPause() { if (game.mode !== 'paused') return; ctx.fillStyle = 'rgba
 function draw() { drawWorld(); drawPause(); }
 
 window.addEventListener('resize', resizeCanvas);
-window.addEventListener('keydown', (event) => { const key = event.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'p', ' '].includes(key)) event.preventDefault(); keys.add(key); if (key === 'p' && !event.repeat) togglePause(); if (key === 'enter' && (game.mode === 'ready' || game.mode === 'gameover' || game.mode === 'win')) startGame(); });
+window.addEventListener('keydown', (event) => { const key = event.key.toLowerCase(); if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'p', 'q', ' '].includes(key)) event.preventDefault(); keys.add(key); if (key === 'p' && !event.repeat) togglePause(); if (key === 'q' && !event.repeat) toggleView(); if (key === 'enter' && (game.mode === 'ready' || game.mode === 'gameover' || game.mode === 'win')) startGame(); });
 window.addEventListener('keyup', (event) => keys.delete(event.key.toLowerCase()));
 document.addEventListener('mousemove', (event) => { if (document.pointerLockElement === canvas && game.mode === 'playing') player.angle += event.movementX * .0025; });
 canvas.addEventListener('pointerdown', (event) => { if (game.mode !== 'playing') return; keys.add('pointerfire'); canvas.setPointerCapture?.(event.pointerId); });
