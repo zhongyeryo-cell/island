@@ -13,30 +13,104 @@ const overlayBest = document.querySelector('#overlayBest');
 const startButton = document.querySelector('#startButton');
 const pauseButton = document.querySelector('#pauseButton');
 const currentYear = document.querySelector('#currentYear');
+const stageElement = document.querySelector('#stageLabel');
 
 const WIDTH = 960;
 const HEIGHT = 640;
 const FOV = Math.PI / 3;
 const RAY_STEP = 2;
 const RAY_COUNT = WIDTH / RAY_STEP;
-const MAP = [
-  '111111111111111',
-  '100000000000001',
-  '101111011111101',
-  '101001010000101',
-  '101001010110101',
-  '100001010010001',
-  '111101010011101',
-  '100001000000001',
-  '101111011111101',
-  '101000000000101',
-  '101011111110101',
-  '100000000000001',
-  '111111111111111',
+const STAGES = [
+  {
+    name: 'CRIMSON MAZE',
+    location: 'ZONE 01 / RED HALL',
+    map: [
+      '111111111111111',
+      '100000000000001',
+      '101111011111101',
+      '101001010000101',
+      '101001010110101',
+      '100001010010001',
+      '111101010011101',
+      '100001000000001',
+      '101111011111101',
+      '101000000000101',
+      '101011111110101',
+      '100000000000001',
+      '111111111111111',
+    ],
+    enemySpawns: [
+      [5.5, 1.5, .3], [10.5, 1.5, 1.5], [3.5, 3.5, 2.2], [8.5, 3.5, 3.1],
+      [2.5, 5.5, .7], [8.5, 5.5, 4.3], [2.5, 7.5, 2.9], [10.5, 9.5, 5],
+    ],
+    bossSpawn: [12.5, 11.5],
+    treasureSpawns: [
+      [12.5, 1.5], [3.5, 3.5], [8.5, 3.5], [2.5, 5.5], [8.5, 5.5],
+      [2.5, 7.5], [9.5, 7.5], [5.5, 9.5], [10.5, 9.5], [7.5, 11.5],
+    ],
+  },
+  {
+    name: 'STATIC HALLS',
+    location: 'ZONE 02 / SIGNAL VAULT',
+    map: [
+      '111111111111111',
+      '100000000000001',
+      '101111111110101',
+      '101000001000101',
+      '101011101011101',
+      '101010001010101',
+      '101011101010101',
+      '101000001010101',
+      '101111101010101',
+      '100000001000001',
+      '101111111111101',
+      '100000000000001',
+      '111111111111111',
+    ],
+    enemySpawns: [
+      [5.5, 1.5, .3], [10.5, 1.5, 1.5], [3.5, 3.5, 2.2], [6.5, 3.5, 3.1],
+      [5.5, 5.5, .7], [11.5, 5.5, 4.3], [3.5, 7.5, 2.9], [10.5, 9.5, 5],
+    ],
+    bossSpawn: [12.5, 11.5],
+    treasureSpawns: [
+      [2.5, 1.5], [8.5, 1.5], [12.5, 1.5], [4.5, 3.5], [9.5, 3.5],
+      [7.5, 5.5], [6.5, 7.5], [11.5, 7.5], [2.5, 9.5], [12.5, 9.5],
+    ],
+  },
+  {
+    name: 'DROWNED GRID',
+    location: 'ZONE 03 / BLACK CURRENT',
+    map: [
+      '111111111111111',
+      '100000000000001',
+      '101011101110101',
+      '101000101000101',
+      '101110101011101',
+      '100010101010001',
+      '111010101010111',
+      '100010101010001',
+      '101110101011101',
+      '101000101000101',
+      '101011101110101',
+      '100000000000001',
+      '111111111111111',
+    ],
+    enemySpawns: [
+      [5.5, 1.5, .3], [10.5, 1.5, 1.5], [3.5, 3.5, 2.2], [9.5, 3.5, 3.1],
+      [5.5, 5.5, .7], [11.5, 5.5, 4.3], [3.5, 7.5, 2.9], [10.5, 9.5, 5],
+    ],
+    bossSpawn: [12.5, 11.5],
+    treasureSpawns: [
+      [2.5, 1.5], [8.5, 1.5], [12.5, 1.5], [4.5, 3.5], [7.5, 3.5],
+      [9.5, 5.5], [12.5, 5.5], [5.5, 7.5], [11.5, 7.5], [3.5, 9.5],
+    ],
+  },
 ];
+let activeStage = STAGES[0];
+let MAP = activeStage.map;
 const keys = new Set();
 const player = { x: 1.5, y: 1.5, angle: 0, hp: 100, hurt: 0, cooldown: 0 };
-const game = { mode: 'ready', score: 0, best: loadBest(), kills: 0, total: 8, relics: 0, relicTotal: 10, time: 0, muzzle: 0, warning: 0 };
+const game = { mode: 'ready', score: 0, best: loadBest(), kills: 0, total: 8, relics: 0, relicTotal: 10, stageIndex: -1, time: 0, muzzle: 0, warning: 0 };
 let enemies = [];
 let enemyBullets = [];
 let treasures = [];
@@ -61,6 +135,14 @@ function isWall(x, y) { const mapX = Math.floor(x); const mapY = Math.floor(y); 
 function resizeCanvas() { const ratio = Math.min(window.devicePixelRatio || 1, 2); canvas.width = WIDTH * ratio; canvas.height = HEIGHT * ratio; ctx.setTransform(ratio, 0, 0, ratio, 0, 0); }
 function makeStars() { stars = Array.from({ length: 92 }, () => ({ x: random(0, WIDTH), y: random(0, HEIGHT), size: random(.4, 1.8), speed: random(7, 31), alpha: random(.08, .56) })); }
 
+function selectRandomStage() {
+  let nextIndex = Math.floor(Math.random() * STAGES.length);
+  while (STAGES.length > 1 && nextIndex === game.stageIndex) nextIndex = Math.floor(Math.random() * STAGES.length);
+  activeStage = STAGES[nextIndex];
+  MAP = activeStage.map;
+  game.stageIndex = nextIndex;
+}
+
 function updateHud() {
   hostilesElement.textContent = `${String(game.kills).padStart(2, '0')} / ${String(game.total).padStart(2, '0')}`;
   healthElement.textContent = String(Math.max(0, Math.ceil(player.hp))).padStart(3, '0');
@@ -68,6 +150,10 @@ function updateHud() {
   relicsElement.textContent = `${String(game.relics).padStart(2, '0')} / ${String(game.relicTotal).padStart(2, '0')}`;
   relicsElement.setAttribute('aria-label', `回収した宝 ${game.relics}個`);
   bestElement.textContent = formatScore(game.best);
+  if (stageElement) {
+    stageElement.textContent = `STAGE ${String(game.stageIndex + 1).padStart(2, '0')} / ${activeStage.name}`;
+    stageElement.setAttribute('aria-label', `${activeStage.name}（${activeStage.location}）`);
+  }
 }
 
 function updateMissionStatus() {
@@ -79,10 +165,13 @@ function updateMissionStatus() {
 }
 
 function resetGame() {
+  selectRandomStage();
   game.score = 0;
   game.kills = 0;
   game.relics = 0;
   game.time = 0;
+  game.total = activeStage.enemySpawns.length;
+  game.relicTotal = activeStage.treasureSpawns.length;
   game.muzzle = 0;
   game.warning = 0;
   player.x = 1.5;
@@ -93,15 +182,9 @@ function resetGame() {
   player.cooldown = 0;
   particles = [];
   enemyBullets = [];
-  enemies = [
-    [5.5, 1.5, .3], [10.5, 1.5, 1.5], [3.5, 3.5, 2.2], [8.5, 3.5, 3.1],
-    [2.5, 5.5, .7], [8.5, 5.5, 4.3], [2.5, 7.5, 2.9], [10.5, 9.5, 5],
-  ].map(([x, y, phase], index) => ({ x, y, phase, alive: true, flash: 0, fireFlash: 0, hp: 70, maxHp: 70, speed: (.28 + (index % 3) * .035) * 3, shootTimer: 1.3 + index * .22 }));
-  boss = { x: 12.5, y: 11.5, phase: 1.2, speed: .48, alive: true, vulnerable: false, hp: 500, maxHp: 500, flash: 0, fireFlash: 0, shootTimer: 1.8 };
-  treasures = [
-    [12.5, 1.5], [3.5, 3.5], [8.5, 3.5], [2.5, 5.5], [8.5, 5.5],
-    [2.5, 7.5], [9.5, 7.5], [5.5, 9.5], [10.5, 9.5], [7.5, 11.5],
-  ].map(([x, y], index) => ({ x, y, index, collected: false, phase: index * .8 }));
+  enemies = activeStage.enemySpawns.map(([x, y, phase], index) => ({ x, y, phase, alive: true, flash: 0, fireFlash: 0, hp: 70, maxHp: 70, speed: (.28 + (index % 3) * .035) * 3, shootTimer: 1.3 + index * .22 }));
+  boss = { x: activeStage.bossSpawn[0], y: activeStage.bossSpawn[1], phase: 1.2, speed: .48, alive: true, vulnerable: false, hp: 500, maxHp: 500, flash: 0, fireFlash: 0, shootTimer: 1.8 };
+  treasures = activeStage.treasureSpawns.map(([x, y], index) => ({ x, y, index, collected: false, phase: index * .8 }));
   updateHud();
   missionStatus.textContent = 'SEARCHING';
 }

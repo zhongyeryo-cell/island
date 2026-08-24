@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="VOID RUNNER — 宝を集めて不死身のボスに挑む、893 ARCADEのホラー3D FPSゲーム。" />
+    <meta name="description" content="VOID RUNNER — 3種類のステージをランダムに駆け、宝を集めて不死身のボスに挑むホラー3D FPSゲーム。" />
     <title>VOID RUNNER — NIGHTMARE MODE</title>
     <link rel="stylesheet" href="mini.css" />
     <link rel="stylesheet" href="fps.css" />
@@ -18,11 +18,11 @@
         <section class="mini-stage fps-stage" aria-label="VOID RUNNER 3D FPSゲーム画面">
           <canvas id="gameCanvas" width="960" height="640" tabindex="0">Canvasに対応したブラウザで遊べます。</canvas>
           <div class="fps-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i><b></b></div>
-          <div class="fps-location" aria-hidden="true"><span>ZONE 893 / NIGHT</span><i></i><span id="missionStatus">SEARCHING</span></div>
+          <div class="fps-location" aria-label="ステージ情報"><span id="stageLabel">STAGE 01 / CRIMSON MAZE</span><i></i><span id="missionStatus">SEARCHING</span></div>
           <button class="pause-button" id="pauseButton" type="button" aria-label="ゲームを一時停止" disabled>Ⅱ</button>
           <div class="mini-overlay is-visible" id="overlay"><div class="mini-overlay-panel"><p class="mini-kicker" id="overlayKicker">ZONE 893 / NIGHTMARE MODE</p><h1 id="overlayTitle">VOID <em>RUNNER</em></h1><p class="mini-overlay-copy" id="overlayCopy">暗い迷路に散った10個の宝を集めろ。<br />追ってくる「それ」は、まだ倒せない。</p><button class="mini-start" id="startButton" type="button">ENTER THE DARK <span>↗</span></button><p class="mini-help">WASD / ARROWS MOVE　·　HOLD CLICK / SPACE FIRE</p><p class="mini-best" id="overlayBest">BEST 000000</p></div></div>
         </section>
-        <section class="mini-bottom fps-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>WASDまたは矢印キーで移動、マウスで視点を動かして長押し連射。<br />宝を10個集めるまでボスは無敵。集めたら、追跡者を撃ち倒そう。</p></div><div class="fps-touch-controls" aria-label="タッチ操作"><button class="fps-control" data-control="left" type="button" aria-label="左へ移動">←</button><button class="fps-control" data-control="forward" type="button" aria-label="前へ移動">↑</button><button class="fps-control" data-control="back" type="button" aria-label="後ろへ移動">↓</button><button class="fps-control" data-control="right" type="button" aria-label="右へ移動">→</button><button class="fps-control fps-fire" data-control="fire" type="button" aria-label="連射">FIRE</button></div><a class="mini-back" href="index.html">← ARCADE</a></section>
+        <section class="mini-bottom fps-bottom"><div class="mini-instructions"><strong>HOW TO PLAY</strong><p>WASDまたは矢印キーで移動、マウスで視点を動かして長押し連射。<br />3種類のステージからランダムに選ばれます。宝を10個集めるまでボスは無敵。</p></div><div class="fps-touch-controls" aria-label="タッチ操作"><button class="fps-control" data-control="left" type="button" aria-label="左へ移動">←</button><button class="fps-control" data-control="forward" type="button" aria-label="前へ移動">↑</button><button class="fps-control" data-control="back" type="button" aria-label="後ろへ移動">↓</button><button class="fps-control" data-control="right" type="button" aria-label="右へ移動">→</button><button class="fps-control fps-fire" data-control="fire" type="button" aria-label="連射">FIRE</button></div><a class="mini-back" href="index.html">← ARCADE</a></section>
       </main>
       <footer class="mini-footer"><span>LOOK SHARP, RUN DEEP</span><span>© <span id="currentYear">2025</span> 893</span><span>PRESS P TO PAUSE</span></footer>
     </div>
