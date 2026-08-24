@@ -1,7 +1,6 @@
 const canvas = document.querySelector('#gameCanvas');
 const ctx = canvas.getContext('2d');
 const hostilesElement = document.querySelector('#hostiles');
-const livesElement = document.querySelector('#lives');
 const healthElement = document.querySelector('#health');
 const relicsElement = document.querySelector('#relics');
 const bestElement = document.querySelector('#best');
@@ -36,7 +35,7 @@ const MAP = [
   '111111111111111',
 ];
 const keys = new Set();
-const player = { x: 1.5, y: 1.5, angle: 0, hp: 3, hurt: 0, cooldown: 0 };
+const player = { x: 1.5, y: 1.5, angle: 0, hp: 100, hurt: 0, cooldown: 0 };
 const game = { mode: 'ready', score: 0, best: loadBest(), kills: 0, total: 8, relics: 0, relicTotal: 10, time: 0, muzzle: 0, warning: 0 };
 let enemies = [];
 let enemyBullets = [];
@@ -64,9 +63,8 @@ function makeStars() { stars = Array.from({ length: 92 }, () => ({ x: random(0, 
 
 function updateHud() {
   hostilesElement.textContent = `${String(game.kills).padStart(2, '0')} / ${String(game.total).padStart(2, '0')}`;
-  livesElement.textContent = String(game.hp).padStart(2, '0');
-  livesElement.setAttribute('aria-label', `残り${game.hp}機`);
-  healthElement.textContent = `${'◆'.repeat(game.hp)}${'◇'.repeat(Math.max(0, 3 - game.hp))}`;
+  healthElement.textContent = String(Math.max(0, Math.ceil(player.hp))).padStart(3, '0');
+  healthElement.setAttribute('aria-label', `体力 ${Math.max(0, Math.ceil(player.hp))} / 100`);
   relicsElement.textContent = `${String(game.relics).padStart(2, '0')} / ${String(game.relicTotal).padStart(2, '0')}`;
   relicsElement.setAttribute('aria-label', `回収した宝 ${game.relics}個`);
   bestElement.textContent = formatScore(game.best);
@@ -90,7 +88,7 @@ function resetGame() {
   player.x = 1.5;
   player.y = 1.5;
   player.angle = 0;
-  player.hp = 3;
+  player.hp = 100;
   player.hurt = 0;
   player.cooldown = 0;
   particles = [];
@@ -98,8 +96,8 @@ function resetGame() {
   enemies = [
     [5.5, 1.5, .3], [10.5, 1.5, 1.5], [3.5, 3.5, 2.2], [8.5, 3.5, 3.1],
     [2.5, 5.5, .7], [8.5, 5.5, 4.3], [2.5, 7.5, 2.9], [10.5, 9.5, 5],
-  ].map(([x, y, phase], index) => ({ x, y, phase, alive: true, flash: 0, fireFlash: 0, speed: (.28 + (index % 3) * .035) * 3, shootTimer: 1.3 + index * .22 }));
-  boss = { x: 12.5, y: 11.5, phase: 1.2, speed: .48, alive: true, vulnerable: false, hp: 5, maxHp: 5, flash: 0, fireFlash: 0, shootTimer: 1.8 };
+  ].map(([x, y, phase], index) => ({ x, y, phase, alive: true, flash: 0, fireFlash: 0, hp: 70, maxHp: 70, speed: (.28 + (index % 3) * .035) * 3, shootTimer: 1.3 + index * .22 }));
+  boss = { x: 12.5, y: 11.5, phase: 1.2, speed: .48, alive: true, vulnerable: false, hp: 500, maxHp: 500, flash: 0, fireFlash: 0, shootTimer: 1.8 };
   treasures = [
     [12.5, 1.5], [3.5, 3.5], [8.5, 3.5], [2.5, 5.5], [8.5, 5.5],
     [2.5, 7.5], [9.5, 7.5], [5.5, 9.5], [10.5, 9.5], [7.5, 11.5],
@@ -192,9 +190,9 @@ function moveBoss(dt) {
   boss.phase += Math.PI * .31;
 }
 
-function damagePlayer() {
+function damagePlayer(amount = 10) {
   if (player.hurt > 0 || game.mode !== 'playing') return;
-  player.hp -= 1;
+  player.hp = Math.max(0, player.hp - amount);
   player.hurt = 1.25;
   game.warning = .7;
   burst(player.x, player.y, '#ff315f', 23, 1.5);
@@ -228,7 +226,7 @@ function updateEnemyFire(dt) {
   for (let index = enemyBullets.length - 1; index >= 0; index -= 1) {
     const bullet = enemyBullets[index];
     if (bullet.life <= 0 || isWall(bullet.x, bullet.y)) { enemyBullets.splice(index, 1); continue; }
-    if (Math.hypot(player.x - bullet.x, player.y - bullet.y) < .24) { enemyBullets.splice(index, 1); damagePlayer(); }
+    if (Math.hypot(player.x - bullet.x, player.y - bullet.y) < .24) { enemyBullets.splice(index, 1); damagePlayer(bullet.isBoss ? 20 : 10); }
   }
 }
 
@@ -262,17 +260,20 @@ function shoot() {
   const hit = visible[0].enemy;
   if (hit === boss) {
     if (!boss.vulnerable) { boss.flash = .14; burst(boss.x, boss.y, '#7e243c', 5, 1); return; }
-    boss.hp -= 1;
+    boss.hp = Math.max(0, boss.hp - 35);
     boss.flash = .2;
     game.score += 150;
     burst(boss.x, boss.y, '#ffd166', 10, 1.4);
     if (boss.hp <= 0) { boss.alive = false; game.score += 500; burst(boss.x, boss.y, '#ff315f', 40, 2); finish('win'); }
   } else {
-    hit.alive = false;
+    hit.hp = Math.max(0, hit.hp - 35);
     hit.flash = .2;
-    game.kills += 1;
-    game.score += 100;
-    burst(hit.x, hit.y, '#ff5ba7', 18, 1.6);
+    burst(hit.x, hit.y, hit.hp > 0 ? '#ffd166' : '#ff5ba7', hit.hp > 0 ? 7 : 18, 1.6);
+    if (hit.hp <= 0) {
+      hit.alive = false;
+      game.kills += 1;
+      game.score += 100;
+    }
   }
   updateHud();
 }
@@ -311,8 +312,8 @@ function update(dt) {
   moveBoss(dt);
   collectTreasures();
   updateEnemyFire(dt);
-  enemies.filter((enemy) => enemy.alive).forEach((enemy) => { if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < .62) damagePlayer(); });
-  if (boss?.alive && Math.hypot(boss.x - player.x, boss.y - player.y) < .74) damagePlayer();
+  enemies.filter((enemy) => enemy.alive).forEach((enemy) => { if (Math.hypot(enemy.x - player.x, enemy.y - player.y) < .62) damagePlayer(18); });
+  if (boss?.alive && Math.hypot(boss.x - player.x, boss.y - player.y) < .74) damagePlayer(30);
   updateMissionStatus();
 }
 
@@ -361,6 +362,21 @@ function drawEnemyBullets() {
   enemyBullets.forEach((bullet) => { const projection = projectWorld(bullet.x, bullet.y, bullet.isBoss ? .18 : .12); if (!projection) return; ctx.save(); ctx.globalAlpha = Math.min(1, projection.distance); ctx.fillStyle = bullet.isBoss ? '#ff315f' : '#ffd166'; ctx.shadowColor = bullet.isBoss ? '#ff315f' : '#ffd166'; ctx.shadowBlur = 17; const size = Math.max(3, projection.spriteHeight * .1); ctx.fillRect(projection.screenX - size / 2, projection.top + projection.spriteHeight * .47, size, size); ctx.restore(); });
 }
 
+function drawHealthBar(screenX, top, width, ratio, color, label = '') {
+  const barWidth = Math.max(28, width * 1.15);
+  const barHeight = Math.max(3, Math.min(6, width * .035));
+  const barX = screenX - barWidth / 2;
+  const barY = Math.max(9, top - (label ? 22 : 13));
+  ctx.save();
+  ctx.globalAlpha = .92;
+  ctx.fillStyle = 'rgba(3,4,10,.85)';
+  ctx.fillRect(barX - 1, barY - 1, barWidth + 2, barHeight + 2);
+  ctx.fillStyle = color;
+  ctx.fillRect(barX, barY, barWidth * clamp(ratio, 0, 1), barHeight);
+  if (label) { ctx.fillStyle = color; ctx.font = '500 9px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText(label, screenX, barY - 5); ctx.textAlign = 'start'; }
+  ctx.restore();
+}
+
 function drawEnemyGun(screenX, top, spriteHeight, width, enemy) {
   ctx.fillStyle = '#3c263b'; ctx.fillRect(screenX + width * .2, top + spriteHeight * .54, width * .34, spriteHeight * .085);
   ctx.fillStyle = enemy === boss ? '#ff315f' : '#ffd166'; ctx.fillRect(screenX + width * .49, top + spriteHeight * .54, width * .2, spriteHeight * .05);
@@ -369,7 +385,7 @@ function drawEnemyGun(screenX, top, spriteHeight, width, enemy) {
 
 function drawEnemies() {
   const visible = enemies.filter((enemy) => enemy.alive).map(projectEnemy).filter(Boolean).sort((a, b) => b.distance - a.distance);
-  visible.forEach(({ enemy, screenX, spriteHeight, top }) => { const width = spriteHeight * .48; ctx.save(); ctx.globalAlpha = enemy.flash > 0 ? .42 : 1; ctx.shadowColor = '#ff5ba7'; ctx.shadowBlur = 17; ctx.fillStyle = '#7f274d'; ctx.beginPath(); ctx.moveTo(screenX, top); ctx.lineTo(screenX + width * .44, top + spriteHeight * .3); ctx.lineTo(screenX + width * .38, top + spriteHeight * .78); ctx.lineTo(screenX, top + spriteHeight); ctx.lineTo(screenX - width * .38, top + spriteHeight * .78); ctx.lineTo(screenX - width * .44, top + spriteHeight * .3); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#100d1d'; ctx.fillRect(screenX - width * .22, top + spriteHeight * .27, width * .44, spriteHeight * .18); ctx.fillStyle = '#ff315f'; ctx.fillRect(screenX - width * .14, top + spriteHeight * .32, width * .28, spriteHeight * .055); ctx.fillStyle = '#ffd166'; ctx.fillRect(screenX - width * .08, top + spriteHeight * .53, width * .16, spriteHeight * .12); drawEnemyGun(screenX, top, spriteHeight, width, enemy); ctx.strokeStyle = '#ff315f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(screenX - width * .35, top + spriteHeight * .77); ctx.lineTo(screenX - width * .52, top + spriteHeight); ctx.moveTo(screenX + width * .35, top + spriteHeight * .77); ctx.lineTo(screenX + width * .52, top + spriteHeight); ctx.stroke(); ctx.restore(); });
+  visible.forEach(({ enemy, screenX, spriteHeight, top }) => { const width = spriteHeight * .48; ctx.save(); ctx.globalAlpha = enemy.flash > 0 ? .42 : 1; ctx.shadowColor = '#ff5ba7'; ctx.shadowBlur = 17; ctx.fillStyle = '#7f274d'; ctx.beginPath(); ctx.moveTo(screenX, top); ctx.lineTo(screenX + width * .44, top + spriteHeight * .3); ctx.lineTo(screenX + width * .38, top + spriteHeight * .78); ctx.lineTo(screenX, top + spriteHeight); ctx.lineTo(screenX - width * .38, top + spriteHeight * .78); ctx.lineTo(screenX - width * .44, top + spriteHeight * .3); ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#100d1d'; ctx.fillRect(screenX - width * .22, top + spriteHeight * .27, width * .44, spriteHeight * .18); ctx.fillStyle = '#ff315f'; ctx.fillRect(screenX - width * .14, top + spriteHeight * .32, width * .28, spriteHeight * .055); ctx.fillStyle = '#ffd166'; ctx.fillRect(screenX - width * .08, top + spriteHeight * .53, width * .16, spriteHeight * .12); drawEnemyGun(screenX, top, spriteHeight, width, enemy); drawHealthBar(screenX, top, width, enemy.hp / enemy.maxHp, '#ff5ba7'); ctx.strokeStyle = '#ff315f'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(screenX - width * .35, top + spriteHeight * .77); ctx.lineTo(screenX - width * .52, top + spriteHeight); ctx.moveTo(screenX + width * .35, top + spriteHeight * .77); ctx.lineTo(screenX + width * .52, top + spriteHeight); ctx.stroke(); ctx.restore(); });
 }
 
 function drawBoss() {
@@ -388,7 +404,7 @@ function drawBoss() {
   drawEnemyGun(screenX, top, spriteHeight, width, boss);
   ctx.strokeStyle = boss.vulnerable ? '#ffd166' : 'rgba(255,49,95,.65)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(screenX, top + spriteHeight * .5, width * .69 + Math.sin(game.time * 3) * 4, 0, Math.PI * 2); ctx.stroke();
   if (!boss.vulnerable) { ctx.strokeStyle = 'rgba(255,49,95,.3)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(screenX, top + spriteHeight * .5, width * .9 + Math.sin(game.time * 2) * 5, 0, Math.PI * 2); ctx.stroke(); }
-  ctx.fillStyle = boss.vulnerable ? 'rgba(255,209,102,.55)' : 'rgba(255,49,95,.5)'; ctx.fillRect(screenX - width * .5, top - 9, width * (boss.hp / boss.maxHp), 3);
+  drawHealthBar(screenX, top, width, boss.hp / boss.maxHp, boss.vulnerable ? '#ffd166' : '#ff315f', `BOSS ${boss.hp} / ${boss.maxHp}`);
   ctx.restore();
 }
 
